@@ -8,6 +8,13 @@ import java.awt.event.KeyEvent;
 import javax.swing.Timer;
 
 public class GameManager implements ActionListener{
+    private static final double SQRT3 = Math.sqrt(3);
+
+
+    double currentOriginX = 0;
+    double currentOriginY = 0;
+    Room currentRoom;
+
     Timer timer;
     Gui gui;
     Input input;
@@ -16,6 +23,10 @@ public class GameManager implements ActionListener{
     int fps = 0;
     int lastSecond = (int)System.currentTimeMillis();
     public GameManager(){
+        Map.loadMapFromFile();
+        Map.generateMap();
+        System.exit(fps);
+        currentRoom = Map.getRoom(0, 0);
         input = new Input();
         gui = new Gui(1080, 720, input);
         xVel = 0;
@@ -50,9 +61,32 @@ public class GameManager implements ActionListener{
         }
         xVel *= 0.95;
         yVel *= 0.95;
-        gui.moveCamera(xVel, yVel);
         gui.background(40, 40, 40);
-        gui.drawMap(0, 0);
+
+        // TODO: Move to its own method i just need this working now please :)
+        if(Math.hypot(Gui.cameraX - currentOriginX, Gui.cameraY - currentOriginY) > Gui.roomSize){
+            double deltaX = Gui.cameraX - currentOriginX;
+            double deltaY = Gui.cameraY - currentOriginY;
+            // Find newX, newY
+            // Update origin x,y
+            double angle = Math.atan2(deltaY, deltaX) + (double)(Math.PI/6);
+            double direction = Math.floor(angle / ((double)(Math.PI/3.0)));
+            currentOriginX += (double)(Gui.roomSize * SQRT3)*Math.cos(direction * Math.PI/3.0);
+            currentOriginY += (double)(Gui.roomSize * SQRT3)*Math.sin(direction * Math.PI/3.0);
+        }
+
+        gui.moveCamera(xVel, yVel);
+        //gui.drawMap(0, 0);
+        
+        gui.drawRoom(currentOriginX, currentOriginY, fps);
+        for(int i = 0; i < currentRoom.getConnectedRooms().length; i++){
+            Room connectedRoom = Map.getRoom(currentRoom.getConnectedRooms()[i]);
+            double x = roomXtoAbs(connectedRoom.getX(), connectedRoom.getY());
+            double y = roomYtoAbs(connectedRoom.getY());
+            gui.drawRoom(x, y, i);
+            System.out.println(currentRoom.getConnectedRooms().length);
+        }
+
         gui.displayFPS(fps);
         gui.repaint();
     }
@@ -64,21 +98,23 @@ public class GameManager implements ActionListener{
     /// STATIC (UTILITY) METHODS
     ///////////////////////////////////////////////////
 
+    
+
     public static int twoToOneD(int x, int y){
-        return (y * 6) + x;
+        return y * Map.MAP_WIDTH + x;
     }
     public static int[] oneToTwoD(int n){
         return new int[]{
-            n / 6,
-            n % 6
+            n % Map.MAP_WIDTH,
+            n / Map.MAP_WIDTH
         };
     }
-    public static double screenXTo3D(double xPlane, double yPlane){ 
+    public static double absXTo3D(double xPlane, double yPlane){ 
         double x3d = xPlane - Gui.cameraX;
         double z3d = (yPlane - Gui.cameraY) * Math.cos(Gui.CAMERA_ANGLE) + Gui.cameraZ;
         return x3d * (Gui.FOCAL_LENGTH / z3d) + Gui.WIDTH / 2;
     }
-    public static double screenYTo3D(double yPlane){
+    public static double absYTo3D(double yPlane){
         double y3d = (yPlane - Gui.cameraY) * Math.sin(Gui.CAMERA_ANGLE);
         double z3d = (yPlane - Gui.cameraY) * Math.cos(Gui.CAMERA_ANGLE) + Gui.cameraZ;
         return y3d * (Gui.FOCAL_LENGTH / z3d) + Gui.HEIGHT / 2;
@@ -92,29 +128,23 @@ public class GameManager implements ActionListener{
             y3d * (Gui.FOCAL_LENGTH / z3d) + Gui.HEIGHT / 2
         }; 
     }
-    public static int[] determineVisibleRooms(int playerX, int playerY){
+    public static double roomXtoAbs(int x, int y){
+        return (y % 2 == 1)?
+            x * SQRT3 * Gui.roomSize + (SQRT3 * Gui.roomSize * 0.5) :
+            x * SQRT3 * Gui.roomSize;            
+    }
+    public static double roomYtoAbs(int y){
+        return y * Gui.roomSize * 1.5;
+    }
+    public static double[] roomXYtoAbs(int x, int y){
+        return new double[] { 
+            (y % 2 == 1)?
+                x * SQRT3 * Gui.roomSize + (SQRT3 * Gui.roomSize * 0.5) :
+                x * SQRT3 * Gui.roomSize,
+
+            y * Gui.roomSize * 1.5
+        };
 
     }
-    public static int determineCurRoom(double x, double y){
-        double tileWidth = 2 * Gui.roomSize * 3.0/4.0;
-        double tileHeight = Gui.roomSize * Math.sqrt(3);
-
-        double xTiles = x % tileWidth;
-        double yTiles = y % tileHeight;
-
-        double tileLeftCenterX = xTiles * tileWidth;
-        double tileLeftCenterY = yTiles * tileHeight + (tileHeight / 2);
-        // Bottom triangle
-        if(y > 1.73205 * (x - tileLeftCenterX) + tileLeftCenterY){
-            
-        }
-        // Top triangle
-        else if(y < -1.73205 * (x - tileLeftCenterX) + tileLeftCenterY){
-
-        } 
-        // Rest of the rect
-        else {
-
-        }
-    }
+    
 }
