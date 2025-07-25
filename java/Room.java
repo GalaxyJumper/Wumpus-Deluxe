@@ -14,10 +14,9 @@ public class Room implements Drawable{
     private int xRooms;
     private int yRooms;
 
-    public Room(RoomType type, int num, int[] connectedRooms){
+    public Room(RoomType type, int num){
         this.type = type;
         this.roomNum = num;
-        this.connectedRooms = connectedRooms;
         xRooms = GameManager.oneToTwoD(num)[0];
         yRooms = GameManager.oneToTwoD(num)[1];
     }

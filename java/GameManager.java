@@ -1,9 +1,10 @@
-
-import java.awt.Color;
-import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Random;
 
 import javax.swing.Timer;
 
@@ -25,7 +26,6 @@ public class GameManager implements ActionListener{
     public GameManager(){
         Map.loadMapFromFile();
         Map.generateMap();
-        System.exit(fps);
         currentRoom = Map.getRoom(0, 0);
         input = new Input();
         gui = new Gui(1080, 720, input);
@@ -145,6 +145,41 @@ public class GameManager implements ActionListener{
             y * Gui.roomSize * 1.5
         };
 
+    }
+    public static int[] getUniqueIntsFromArray(int numInts, int[] array){
+        ArrayList<Integer> list = new ArrayList<Integer> ();
+        for(int i : array) list.add(i);
+
+        int[] result = new int[numInts];
+
+        Random rng = new Random();  
+        int randIndex;
+        
+        for(int i = 0; i < numInts; i++){
+            randIndex = rng.nextInt(0, list.size());
+            result[i] = list.get(randIndex);
+            list.remove(randIndex);
+        }
+        return result;
+    }
+    public static int[] getUniqueIntsFromArrayList(int numInts, ArrayList<Integer> array){
+        ArrayList<Integer> list = array;
+
+        int[] result = new int[numInts];
+
+        if(array.size() < numInts){
+            result = new int[array.size()];
+        }
+
+        Random rng = new Random();  
+        int randIndex;
+        
+        for(int i = 0; i < result.length; i++){
+            randIndex = rng.nextInt(0, list.size());
+            result[i] = list.get(randIndex);
+            list.remove(randIndex);
+        }
+        return result;
     }
     
 }
