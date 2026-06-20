@@ -8,3 +8,4 @@ New features include:
 - Visuals revamp including better shadows, water, cliffs, and more
 - More intuitive controls
 - More to come--this is still an in-development project!
+The old project can be found at https://github.com/199No/UW-Rejects
